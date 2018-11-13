@@ -1,0 +1,78 @@
+package dreamcream.com.dreamcream;
+
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+
+public class Location extends AppCompatActivity {
+
+    private LocationManager locMan;
+    private LocationListener locLis;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_location);
+
+        locMan = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+        locLis = new LocationListener() {
+            @Override
+            public void onLocationChanged(android.location.Location location) {
+                Log.d("Location: ", location.toString()); // log the location data.
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1); // ask for one permission
+            return;
+        }
+        if (Build.VERSION.SDK_INT<23){
+            locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locLis);
+        } // if version of android is less than marshmallow, then call this request.
+        else{
+            locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locLis);//allow for location to update after quitting.
+// update to be called again if permission is granted.
+        }
+        locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locLis); // asking for location updates, and after how long should there be an update
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults); // overriding the permission request results. Check if results were granted
+        if(grantResults.length>0&&grantResults[0]==PackageManager.PERMISSION_GRANTED){
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+                locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locLis);
+            }
+        }
+
+    }
+}
